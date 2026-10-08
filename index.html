@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlayGo — Игра ГО</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+    <div class="logo">
+        <span class="logo-stone black-stone"></span>
+        <span>Play<span>Go</span></span>
+    </div>
+    <nav>
+        <a href="#" class="nav-link active" data-view="play">Играть</a>
+        <a href="#rules" class="nav-link" data-view="rules">Правила</a>
+        <button id="themeToggle" class="theme-toggle" type="button" aria-label="Переключить тему" title="Переключить тему">☾</button>
+    </nav>
+</header>
+
+<main>
+    <section id="setupScreen" class="setup-screen">
+        <div class="hero">
+            <div class="eyebrow">КЛАССИЧЕСКАЯ ИГРА ГО</div>
+            <h1>Сыграем партию?</h1>
+            <p>Играйте вдвоём на одном устройстве или против компьютера.</p>
+        </div>
+
+        <div class="setup-card">
+            <div class="setting-group">
+                <h3>Соперник</h3>
+                <div class="choice-grid">
+                    <button class="choice active" data-opponent="friend">
+                        <span class="choice-icon">♟</span>
+                        <strong>Друг</strong>
+                        <small>На одном устройстве</small>
+                    </button>
+                    <button class="choice" data-opponent="computer">
+                        <span class="choice-icon">◉</span>
+                        <strong>Компьютер</strong>
+                        <small>Локальный AI</small>
+                    </button>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <h3>Размер доски</h3>
+                <div class="board-size-buttons">
+                    <button data-size="7">7×7</button>
+                    <button class="active" data-size="9">9×9</button>
+                    <button data-size="13">13×13</button>
+                    <button data-size="19">19×19</button>
+                </div>
+            </div>
+
+            <div class="setting-group computer-settings hidden">
+                <h3>Уровень компьютера</h3>
+                <select id="aiLevel">
+                    <option value="easy">Лёгкий</option>
+                    <option value="medium" selected>Средний</option>
+                    <option value="hard">Сложный</option>
+                </select>
+            </div>
+
+            <div class="setting-group">
+                <h3>Цвет</h3>
+                <div class="color-buttons">
+                    <button class="color-choice active" data-color="black">
+                        <span class="preview-stone black-preview"></span> Чёрные
+                    </button>
+                    <button class="color-choice" data-color="white">
+                        <span class="preview-stone white-preview"></span> Белые
+                    </button>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <h3>Фора</h3>
+                <div class="handicap-buttons">
+                    <button class="active" data-handicap="0">Без форы</button>
+                    <button data-handicap="2">2</button>
+                    <button data-handicap="3">3</button>
+                    <button data-handicap="4">4</button>
+                </div>
+                <div class="komi">Коми <strong>6.5</strong>
+                    <span>компенсация белым за первый ход</span>
+                </div>
+            </div>
+
+            <button id="startButton" class="start-button">Начать игру <span>→</span></button>
+        </div>
+
+        <div class="tip"><strong>Совет:</strong> для первой партии попробуйте доску 9×9.</div>
+    </section>
+
+    <section id="rulesScreen" class="rules-screen hidden">
+        <div class="rules-header">
+            <div class="eyebrow">КАК ИГРАТЬ</div>
+            <h1>Правила ГО</h1>
+            <p>Коротко о главном — всё необходимое, чтобы начать первую партию.</p>
+        </div>
+
+        <div class="rules-grid">
+            <article class="rule-card rule-main">
+                <div class="rule-number">01</div>
+                <h2>Цель игры</h2>
+                <p>Окружайте территорию на доске и захватывайте камни соперника. В конце партии побеждает игрок с большим количеством очков.</p>
+            </article>
+            <article class="rule-card">
+                <div class="rule-number">02</div>
+                <h2>Ход</h2>
+                <p>Чёрные ходят первыми. За ход поставьте один камень на свободное пересечение линий.</p>
+            </article>
+            <article class="rule-card">
+                <div class="rule-number">03</div>
+                <h2>Дыхания</h2>
+                <p>У каждого камня есть соседние свободные точки — «дыхания». Камень или группа без дыханий может быть захвачена.</p>
+            </article>
+            <article class="rule-card">
+                <div class="rule-number">04</div>
+                <h2>Захват</h2>
+                <p>Если после вашего хода группа соперника теряет последнее дыхание, все её камни снимаются с доски.</p>
+            </article>
+            <article class="rule-card">
+                <div class="rule-number">05</div>
+                <h2>Запрет самоубийства</h2>
+                <p>Нельзя поставить камень так, чтобы он сам оказался без дыханий, если этим ходом не был произведён захват.</p>
+            </article>
+            <article class="rule-card">
+                <div class="rule-number">06</div>
+                <h2>Правило ко</h2>
+                <p>Нельзя немедленно вернуть позицию доски, которая только что была создана предыдущим ходом.</p>
+            </article>
+            <article class="rule-card">
+                <div class="rule-number">07</div>
+                <h2>Пас</h2>
+                <p>Если не хотите делать ход, нажмите «Пас». Два паса подряд завершают партию и запускают подсчёт.</p>
+            </article>
+            <article class="rule-card">
+                <div class="rule-number">08</div>
+                <h2>Коми</h2>
+                <p>Белым начисляется 6.5 очка за то, что чёрные получают право первого хода.</p>
+            </article>
+        </div>
+
+        <div class="rules-tip">
+            <strong>Совет новичку</strong>
+            <span>Не стремитесь захватить каждый камень. Сначала учитесь строить крепкие группы и окружать большие территории.</span>
+        </div>
+    </section>
+
+    <section id="gameScreen" class="game-screen hidden">
+        <div class="game-layout">
+            <aside class="player-panel">
+                <div class="player-card" id="blackPlayer">
+                    <div class="player-stone black-player-stone"></div>
+                    <div><strong>Чёрные</strong><span id="blackName">Игрок</span></div>
+                    <div class="captured"><small>Захвачено</small><b id="blackCaptured">0</b></div>
+                </div>
+                <div class="vs">VS</div>
+                <div class="player-card" id="whitePlayer">
+                    <div class="player-stone white-player-stone"></div>
+                    <div><strong>Белые</strong><span id="whiteName">Игрок</span></div>
+                    <div class="captured"><small>Захвачено</small><b id="whiteCaptured">0</b></div>
+                </div>
+                <div class="game-info">
+                    <div><span>Размер</span><strong id="gameSize">9×9</strong></div>
+                    <div><span>Коми</span><strong>6.5</strong></div>
+                </div>
+            </aside>
+
+            <div class="board-area">
+                <div class="turn-indicator">
+                    <span class="turn-stone black-preview" id="turnStone"></span>
+                    Ход: <strong id="turn">Чёрные</strong>
+                </div>
+
+                <div id="board-wrapper"><div id="board"></div></div>
+
+                <div class="game-controls">
+                    <button id="passButton">Пас</button>
+                    <button id="undoButton">Отмена</button>
+                    <button id="resignButton" class="danger">Сдаться</button>
+                    <button id="newGameButton" class="primary">Новая партия</button>
+                </div>
+                <div id="statusMessage" class="status-message"></div>
+            </div>
+        </div>
+    </section>
+
+    <div id="resultModal" class="modal hidden">
+        <div class="modal-card">
+            <div class="result-icon">◉</div>
+            <div class="eyebrow">ПАРТИЯ ОКОНЧЕНА</div>
+            <h2 id="resultTitle">Чёрные победили</h2>
+            <div class="final-score">
+                <div><span>Чёрные</span><strong id="finalBlack">0</strong></div>
+                <div class="score-divider">:</div>
+                <div><span>Белые</span><strong id="finalWhite">0</strong></div>
+            </div>
+            <p id="resultDescription"></p>
+            <div class="modal-buttons">
+                <button id="playAgainButton" class="primary">Сыграть ещё</button>
+                <button id="backButton">В меню</button>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer>
+    <div>
+        <strong>PlayGo</strong>
+        <span>Игра ГО в браузере</span>
+    </div>
+    <a href="https://www.buymeacoffee.com/pachicom" target="_blank" rel="noopener noreferrer">
+        <img src="https://img.buymeacoffee.com/button-api/?text=Buy me a Burger&emoji=🍔&slug=pachicom&button_colour=531f6f&font_colour=ffffff&font_family=Bree&outline_colour=ffffff&coffee_colour=FFDD00"
+             alt="Buy me a Burger">
+    </a>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

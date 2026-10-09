@@ -2,6 +2,7 @@ let boardSize = 9;
 let board = [];
 let currentPlayer = "black";
 let playerColor = "black";
+let selectedPlayerColor = "black";
 let opponent = "friend";
 let komi = 6.5;
 let handicap = 0;
@@ -46,6 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
             btn.classList.add("active");
             opponent = btn.dataset.opponent;
             document.querySelector(".computer-settings").classList.toggle("hidden", opponent !== "computer");
+            updateHandicapAvailability();
         });
     });
 
@@ -53,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
         btn.addEventListener("click", () => {
             document.querySelectorAll("[data-color]").forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
-            playerColor = btn.dataset.color;
+            selectedPlayerColor = btn.dataset.color;
         });
     });
 
@@ -63,6 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
             document.querySelectorAll("[data-handicap]").forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
             handicap = Number(btn.dataset.handicap);
+            updateHandicapAvailability();
         });
     });
     document.getElementById("komiMode").addEventListener("change", event => {
@@ -71,7 +74,6 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("liveKomiLabel").textContent = komi === 0 ? "(без коми)" : "(с коми)";
         updateLiveScore();
     });
-
     document.getElementById("startButton").addEventListener("click", startGame);
     document.getElementById("passButton").addEventListener("click", passTurn);
     document.getElementById("undoButton").addEventListener("click", undoMove);
@@ -106,6 +108,11 @@ function updateHandicapAvailability() {
     document.getElementById("handicapNote").textContent = unavailable
         ? "На доске 7×7 фора недоступна."
         : "Камни форы автоматически ставятся в угловые точки.";
+    const recipient = document.getElementById("handicapRecipient");
+    recipient.disabled = unavailable || opponent !== "computer";
+    document.getElementById("handicapRecipientNote").textContent = unavailable
+        ? "На доске 7×7 фора недоступна."
+        : "Получатель форы играет чёрными; соперник делает первый ход.";
 }
 
 function showView(view) {
@@ -171,6 +178,12 @@ function startGame() {
     document.getElementById("gameScreen").classList.remove("hidden");
 
     board = Array.from({ length: boardSize }, () => Array(boardSize).fill(null));
+    const handicapRecipient = document.getElementById("handicapRecipient").value;
+    playerColor = opponent === "computer" && handicap > 0
+        ? (handicapRecipient === "opponent" ? "white" : "black")
+        : selectedPlayerColor === "random"
+            ? (Math.random() < 0.5 ? "black" : "white")
+            : selectedPlayerColor;
     currentPlayer = "black";
     captured = { black: 0, white: 0 };
     history = [];
@@ -187,6 +200,7 @@ function startGame() {
     document.getElementById("whiteName").textContent =
         opponent === "computer" ? (playerColor === "white" ? "Вы" : "Компьютер") : "Игрок 2";
 
+    setGameControlsEnabled(true);
     animateView(document.getElementById("gameScreen"));
     applyHandicap();
     updateCaptured();
@@ -280,9 +294,9 @@ function renderBoard(territoryMap = null) {
 function getStarPoints(size) {
     if (size === 7) return [[3, 3]];
     if (size === 9) return [[2, 2], [6, 2], [4, 4], [2, 6], [6, 6]];
-    if (size === 13) return [[3, 3], [9, 3], [6, 6], [3, 9], [9, 9]];
-    if (size === 19) {
-        return [[3, 3], [9, 3], [15, 3], [3, 9], [9, 9], [15, 9], [3, 15], [9, 15], [15, 15]];
+    if (size === 13 || size === 19) {
+        const offsets = size === 13 ? [3, 6, 9] : [3, 9, 15];
+        return offsets.flatMap(y => offsets.map(x => [x, y]));
     }
     return [];
 }
@@ -486,6 +500,7 @@ function resign() {
     if (gameOver) return;
 
     gameOver = true;
+    setGameControlsEnabled(false);
     const winner = opposite(currentPlayer);
     const title = winner === "black" ? "Чёрные победили" : "Белые победили";
 
@@ -494,7 +509,9 @@ function resign() {
 }
 
 function finishGame(description = "Оба игрока сделали пас.") {
+    if (gameOver) return;
     gameOver = true;
+    setGameControlsEnabled(false);
     const score = calculateScore();
 
     let title;
@@ -528,7 +545,6 @@ function findTerritories(state) {
 
             const region = [];
             const borders = new Set();
-            const borderStones = new Set();
             const queue = [[x, y]];
 
             while (queue.length) {
@@ -537,7 +553,6 @@ function findTerritories(state) {
 
                 if (state[cy][cx] !== null) {
                     borders.add(state[cy][cx]);
-                    borderStones.add(`${cx},${cy}`);
                     continue;
                 }
 
@@ -547,7 +562,7 @@ function findTerritories(state) {
                 for (const [nx, ny] of neighbors(cx, cy)) queue.push([nx, ny]);
             }
 
-            if (borders.size === 1 && region.length <= borderStones.size * 4) {
+            if (borders.size === 1) {
                 const owner = borders.has("black") ? "black" : "white";
                 if (owner === "black") blackTerritory += region.length;
                 else whiteTerritory += region.length;
@@ -612,7 +627,7 @@ function computerMove() {
 function evaluateMove(x, y, result, territoryMap) {
     let score = 0;
 
-    score += result.captured * 80;
+    score += Math.min(result.captured, 4) * 18;
     if (result.captured === 0 && territoryMap[y][x] === currentPlayer) return -1000;
 
     let ownStoneCount = 0;
@@ -621,6 +636,7 @@ function evaluateMove(x, y, result, territoryMap) {
     let adjacentFriendly = 0;
     let adjacentEnemy = 0;
     const checkedEnemyGroups = new Set();
+    const checkedFriendlyGroups = new Set();
 
     for (let sy = 0; sy < boardSize; sy++) {
         for (let sx = 0; sx < boardSize; sx++) {
@@ -636,6 +652,18 @@ function evaluateMove(x, y, result, territoryMap) {
     for (const [nx, ny] of neighbors(x, y)) {
         if (board[ny][nx] === currentPlayer) {
             adjacentFriendly++;
+            const key = `${nx},${ny}`;
+            if (!checkedFriendlyGroups.has(key)) {
+                const group = getGroup(board, nx, ny);
+                group.forEach(([gx, gy]) => checkedFriendlyGroups.add(`${gx},${gy}`));
+                const before = countLiberties(board, nx, ny);
+                const after = countLiberties(result.board, nx, ny);
+                if (before <= 2 && after < before) {
+                    score -= before === 1 ? 90 : 45;
+                } else if (before <= 2 && after > before) {
+                    score += before === 1 ? 45 : 22;
+                }
+            }
             continue;
         }
         if (board[ny][nx] !== opposite(currentPlayer)) continue;
@@ -653,8 +681,8 @@ function evaluateMove(x, y, result, territoryMap) {
     }
 
     const ownLiberties = countLiberties(result.board, x, y);
-    if (ownLiberties === 1) score -= 45;
-    else if (ownLiberties === 2) score -= 12;
+    if (ownLiberties === 1) score -= 120;
+    else if (ownLiberties === 2) score -= 16;
     else if (ownLiberties >= 4) score += 3;
 
     if (adjacentFriendly > 1 && adjacentEnemy === 0 && result.captured === 0) {
@@ -733,10 +761,16 @@ function showResult(title, description, score) {
     document.getElementById("finalBlack").textContent = score.black.toFixed(1);
     document.getElementById("finalWhite").textContent = score.white.toFixed(1);
     const whiteKomi = score.komi ? ` + коми ${score.komi}` : "";
-    document.getElementById("scoreBreakdown").innerHTML = `<div><strong>Чёрные:</strong> территория ${score.blackTerritory} + захвачено ${score.blackCaptured} = ${score.black.toFixed(1)}</div><div><strong>Белые:</strong> территория ${score.whiteTerritory} + захвачено ${score.whiteCaptured}${whiteKomi} = ${score.white.toFixed(1)}</div><small>Крестиками на доске отмечены точки территории, вошедшие в подсчёт.</small>`;
+    document.getElementById("scoreBreakdown").innerHTML = `<div><strong>Чёрные:</strong> территория ${score.blackTerritory} + пленники ${score.blackCaptured} = ${score.black.toFixed(1)}</div><div><strong>Белые:</strong> территория ${score.whiteTerritory} + пленники ${score.whiteCaptured}${whiteKomi} = ${score.white.toFixed(1)}</div><small>Крестиками на доске отмечены точки территории, вошедшие в подсчёт.</small>`;
     finalTerritoryMap = score.territoryMap;
     renderBoard(finalTerritoryMap);
     document.getElementById("resultModal").classList.remove("hidden");
+}
+
+function setGameControlsEnabled(enabled) {
+    ["passButton", "undoButton", "finishButton", "resignButton"].forEach(id => {
+        document.getElementById(id).disabled = !enabled;
+    });
 }
 
 function closeModal() {

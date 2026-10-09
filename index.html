@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PlayGo — Игра ГО</title>
-    <link rel="stylesheet" href="./style.css?v=3">
+    <link rel="stylesheet" href="./style.css?v=6">
 </head>
 <body>
 
@@ -73,6 +73,7 @@
                     <button class="color-choice" data-color="white">
                         <span class="preview-stone white-preview"></span> Белые
                     </button>
+                    <button class="color-choice" data-color="random">🎲 Случайно</button>
                 </div>
             </div>
 
@@ -84,6 +85,14 @@
                     <button data-handicap="3">3</button>
                     <button data-handicap="4">4</button>
                 </div>
+                <div class="handicap-recipient">
+                    <label for="handicapRecipient">Кому дать фору</label>
+                    <select id="handicapRecipient" disabled>
+                        <option value="player" selected>Игроку</option>
+                        <option value="opponent">Компьютеру</option>
+                    </select>
+                </div>
+                <p class="handicap-note" id="handicapRecipientNote">При игре с компьютером выбор форы определяет, за какой цвет вы играете.</p>
                 <div class="komi-setting">
                     <label for="komiMode">Коми</label>
                     <select id="komiMode">
@@ -128,7 +137,7 @@
             <article class="rule-card">
                 <div class="rule-number">04</div>
                 <h2>Захват</h2>
-                <p>Если после вашего хода группа соперника теряет последнее дыхание, все её камни снимаются с доски.</p>
+                <p>Сначала окружите группу, заняв все её дыхания. Когда останется последняя пустая точка внутри, поставьте туда камень: группа без дыханий будет снята с доски. До окружения ход внутрь может быть запрещён как самоубийственный.</p>
             </article>
             <article class="rule-card">
                 <div class="rule-number">05</div>
@@ -148,7 +157,7 @@
             <article class="rule-card">
                 <div class="rule-number">08</div>
                 <h2>Коми</h2>
-                <p>В настройках можно оставить стандартные 6.5 очка коми или отключить коми.</p>
+                <p>Коми — компенсационные очки белым за то, что чёрные ходят первыми. По умолчанию к счёту белых прибавляется 6,5 очка; перед партией коми можно отключить.</p>
             </article>
         </div>
 
@@ -160,20 +169,24 @@
         <section class="examples-section" aria-labelledby="examplesTitle">
             <div class="examples-heading">
                 <div class="eyebrow">ПРИМЕРЫ НА ДОСКЕ</div>
-                <h2 id="examplesTitle">Три важных момента</h2>
-                <p>Камни ставятся на пересечения линий. Вот как работают дыхания, захват и территория.</p>
+                <h2 id="examplesTitle">Важные моменты на доске</h2>
+                <p>Камни ставятся на пересечения линий. Посмотрите, как работают дыхания, захват, территория и два глаза.</p>
             </div>
             <div class="examples-grid">
                 <article class="example-card">
-                    <div class="example-board" role="img" aria-label="Белый камень с двумя отмеченными свободными дыханиями">
+                    <div class="example-board" role="img" aria-label="Два соединённых по горизонтали белых камня и четыре свободных дыхания их группы">
                         <span class="demo-stone demo-white" style="grid-area:3 / 3"></span>
+                        <span class="demo-stone demo-white" style="grid-area:3 / 4"></span>
                         <span class="demo-stone demo-black" style="grid-area:2 / 3"></span>
+                        <span class="demo-stone demo-black" style="grid-area:4 / 4"></span>
+                        <span class="demo-liberty" style="grid-area:2 / 4"></span>
+                        <span class="demo-liberty" style="grid-area:4 / 3"></span>
                         <span class="demo-liberty" style="grid-area:3 / 2"></span>
-                        <span class="demo-liberty" style="grid-area:3 / 4"></span>
+                        <span class="demo-liberty" style="grid-area:3 / 5"></span>
                     </div>
                     <div>
                         <h3>Дыхания</h3>
-                        <p>Свободные соседние пересечения — это дыхания камня. На схеме точки дыхания отмечены кружками.</p>
+                        <p>Два белых камня соединены по горизонтали и образуют одну группу. Кружки показывают её дыхания — все соседние пустые точки группы считаются вместе. Вертикальное соединение работает так же, диагональное — нет.</p>
                     </div>
                 </article>
                 <article class="example-card">
@@ -220,6 +233,36 @@
                     <div>
                         <h3>Территория</h3>
                         <p>Пустые точки, окружённые камнями только одного цвета, считаются территорией этого игрока.</p>
+                    </div>
+                </article>
+                <article class="example-card">
+                    <div class="example-board" role="img" aria-label="Связанная группа чёрных камней окружает два отдельных глаза, отмеченных кружками">
+                        <span class="demo-stone demo-black" style="grid-area:1 / 1"></span>
+                        <span class="demo-stone demo-black" style="grid-area:1 / 2"></span>
+                        <span class="demo-stone demo-black" style="grid-area:1 / 3"></span>
+                        <span class="demo-stone demo-black" style="grid-area:1 / 4"></span>
+                        <span class="demo-stone demo-black" style="grid-area:1 / 5"></span>
+                        <span class="demo-stone demo-black" style="grid-area:2 / 1"></span>
+                        <span class="demo-stone demo-black" style="grid-area:2 / 3"></span>
+                        <span class="demo-stone demo-black" style="grid-area:2 / 5"></span>
+                        <span class="demo-stone demo-black" style="grid-area:3 / 1"></span>
+                        <span class="demo-stone demo-black" style="grid-area:3 / 2"></span>
+                        <span class="demo-stone demo-black" style="grid-area:3 / 4"></span>
+                        <span class="demo-stone demo-black" style="grid-area:3 / 5"></span>
+                        <span class="demo-stone demo-black" style="grid-area:4 / 1"></span>
+                        <span class="demo-stone demo-black" style="grid-area:4 / 3"></span>
+                        <span class="demo-stone demo-black" style="grid-area:4 / 5"></span>
+                        <span class="demo-stone demo-black" style="grid-area:5 / 1"></span>
+                        <span class="demo-stone demo-black" style="grid-area:5 / 2"></span>
+                        <span class="demo-stone demo-black" style="grid-area:5 / 3"></span>
+                        <span class="demo-stone demo-black" style="grid-area:5 / 4"></span>
+                        <span class="demo-stone demo-black" style="grid-area:5 / 5"></span>
+                        <span class="demo-eye" style="grid-area:2 / 2"></span>
+                        <span class="demo-eye" style="grid-area:4 / 4"></span>
+                    </div>
+                    <div>
+                        <h3>Два глаза</h3>
+                        <p>У связанной чёрной группы два отдельных внутренних пункта — глаза. Противник не может занять их оба: ход в глаз не захватит группу, а оставит камень без дыханий. Поэтому группа с двумя настоящими глазами считается живой.</p>
                     </div>
                 </article>
             </div>
@@ -307,6 +350,6 @@
     </a>
 </footer>
 
-<script src="./script.js?v=3"></script>
+<script src="./script.js?v=6"></script>
 </body>
 </html>

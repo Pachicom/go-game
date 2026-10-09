@@ -11,6 +11,7 @@ let history = [];
 let passCount = 0;
 let gameOver = false;
 let lastMove = null;
+let finalTerritoryMap = null;
 
 document.addEventListener("DOMContentLoaded", () => {
     initTheme();
@@ -23,6 +24,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     document.getElementById("themeToggle").addEventListener("click", toggleTheme);
+    document.getElementById("howToPlayButton").addEventListener("click", () => showView("rules"));
+    document.getElementById("guideStartButton").addEventListener("click", () => showView("play"));
+    window.addEventListener("resize", () => {
+        if (board.length && !document.getElementById("gameScreen").classList.contains("hidden")) {
+            renderBoard(gameOver ? finalTerritoryMap : null);
+        }
+    });
     document.querySelectorAll("[data-size]").forEach(btn => {
         btn.addEventListener("click", () => {
             document.querySelectorAll("[data-size]").forEach(b => b.classList.remove("active"));
@@ -59,6 +67,9 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("startButton").addEventListener("click", startGame);
     document.getElementById("passButton").addEventListener("click", passTurn);
     document.getElementById("undoButton").addEventListener("click", undoMove);
+    document.getElementById("finishButton").addEventListener("click", () => {
+        finishGame("Партия завершена по запросу игрока.");
+    });
     document.getElementById("resignButton").addEventListener("click", resign);
 
     document.getElementById("newGameButton").addEventListener("click", backToMenu);
@@ -81,20 +92,29 @@ function showView(view) {
         setup.classList.add("hidden");
         game.classList.add("hidden");
         rules.classList.remove("hidden");
+        animateView(rules);
     } else {
         rules.classList.add("hidden");
         if (gameOver || game.classList.contains("hidden")) {
             setup.classList.remove("hidden");
             game.classList.add("hidden");
+            animateView(setup);
         } else {
             setup.classList.add("hidden");
             game.classList.remove("hidden");
+            animateView(game);
         }
     }
 
     document.querySelectorAll(".nav-link").forEach(link => {
         link.classList.toggle("active", link.dataset.view === view);
     });
+}
+
+function animateView(element) {
+    element.classList.remove("view-entering");
+    void element.offsetWidth;
+    element.classList.add("view-entering");
 }
 
 function initTheme() {
@@ -132,6 +152,7 @@ function startGame() {
     passCount = 0;
     gameOver = false;
     lastMove = null;
+    finalTerritoryMap = null;
 
     document.getElementById("gameSize").textContent = `${boardSize}×${boardSize}`;
     document.getElementById("blackName").textContent =
@@ -139,9 +160,11 @@ function startGame() {
     document.getElementById("whiteName").textContent =
         opponent === "computer" ? (playerColor === "white" ? "Вы" : "Компьютер") : "Игрок 2";
 
+    animateView(document.getElementById("gameScreen"));
     applyHandicap();
     updateCaptured();
     renderBoard();
+    updateLiveScore();
     updateTurn();
 
     if (opponent === "computer" && currentPlayer !== playerColor) {
@@ -163,13 +186,14 @@ function applyHandicap() {
     if (amount > 0) currentPlayer = "white";
 }
 
-function renderBoard() {
+function renderBoard(territoryMap = null) {
     const el = document.getElementById("board");
     el.innerHTML = "";
 
     const cell = 100 / (boardSize - 1);
-    const stoneSize = Math.max(26, Math.min(44, (100 / boardSize) * 0.78));
+    const stoneSize = (el.clientWidth / (boardSize - 1)) * 0.82;
     el.style.setProperty("--stone-size", `${stoneSize}px`);
+    el.style.setProperty("--marker-size", `${Math.max(13, Math.min(18, stoneSize * 0.62))}px`);
 
     for (let i = 0; i < boardSize; i++) {
         const h = document.createElement("div");
@@ -190,6 +214,19 @@ function renderBoard() {
         p.style.top = `${y * cell}%`;
         el.appendChild(p);
     });
+
+    if (territoryMap) {
+        for (let y = 0; y < boardSize; y++) for (let x = 0; x < boardSize; x++) {
+            if (board[y][x] || !territoryMap[y][x]) continue;
+            const marker = document.createElement("span");
+            marker.className = `territory-marker territory-${territoryMap[y][x]}`;
+            marker.style.left = `${x * cell}%`;
+            marker.style.top = `${y * cell}%`;
+            marker.textContent = "×";
+            marker.title = territoryMap[y][x] === "black" ? "Территория чёрных" : "Территория белых";
+            el.appendChild(marker);
+        }
+    }
 
     for (let y = 0; y < boardSize; y++) {
         for (let x = 0; x < boardSize; x++) {
@@ -253,6 +290,7 @@ function playMove(x, y, isAI = false) {
 
     updateCaptured();
     renderBoard();
+    updateLiveScore();
 
     currentPlayer = opposite(currentPlayer);
     updateTurn();
@@ -389,13 +427,14 @@ function undoMove() {
     gameOver = false;
     updateCaptured();
     renderBoard();
+    updateLiveScore();
     updateTurn();
     clearStatus();
 }
 
-function passTurn() {
+function passTurn(isAI = false) {
     if (gameOver) return;
-    if (opponent === "computer" && currentPlayer !== playerColor) return;
+    if (!isAI && opponent === "computer" && currentPlayer !== playerColor) return;
 
     saveHistory();
     lastMove = null;
@@ -425,7 +464,7 @@ function resign() {
     showResult(title, "Партия завершена после сдачи.", score);
 }
 
-function finishGame() {
+function finishGame(description = "Оба игрока сделали пас.") {
     gameOver = true;
     const score = calculateScore();
 
@@ -434,17 +473,29 @@ function finishGame() {
     else if (score.white > score.black) title = "Белые победили";
     else title = "Ничья";
 
-    showResult(title, "Оба игрока сделали пас.", score);
+    showResult(title, description, score);
 }
 
 function calculateScore() {
-    let black = captured.black;
-    let white = captured.white + komi;
+    const { territoryMap, blackTerritory, whiteTerritory } = findTerritories(board);
+
+    return {
+        black: blackTerritory + captured.black,
+        white: whiteTerritory + captured.white + komi,
+        blackTerritory, whiteTerritory, blackCaptured: captured.black,
+        whiteCaptured: captured.white, komi, territoryMap
+    };
+}
+
+function findTerritories(state) {
+    let blackTerritory = 0;
+    let whiteTerritory = 0;
+    const territoryMap = Array.from({ length: boardSize }, () => Array(boardSize).fill(null));
     const visited = new Set();
 
     for (let y = 0; y < boardSize; y++) {
         for (let x = 0; x < boardSize; x++) {
-            if (board[y][x] !== null || visited.has(`${x},${y}`)) continue;
+            if (state[y][x] !== null || visited.has(`${x},${y}`)) continue;
 
             const region = [];
             const borders = new Set();
@@ -456,8 +507,8 @@ function calculateScore() {
                 if (visited.has(key)) continue;
                 visited.add(key);
 
-                if (board[cy][cx] !== null) {
-                    borders.add(board[cy][cx]);
+                if (state[cy][cx] !== null) {
+                    borders.add(state[cy][cx]);
                     continue;
                 }
 
@@ -466,19 +517,23 @@ function calculateScore() {
             }
 
             if (borders.size === 1) {
-                if (borders.has("black")) black += region.length;
-                if (borders.has("white")) white += region.length;
+                const owner = borders.has("black") ? "black" : "white";
+                if (owner === "black") blackTerritory += region.length;
+                else whiteTerritory += region.length;
+                for (const [rx, ry] of region) territoryMap[ry][rx] = owner;
             }
         }
     }
 
-    return { black, white };
+    return { territoryMap, blackTerritory, whiteTerritory };
 }
 
 function computerMove() {
     if (gameOver || currentPlayer === playerColor) return;
 
     const moves = [];
+    const level = document.getElementById("aiLevel").value;
+    const { territoryMap } = findTerritories(board);
 
     for (let y = 0; y < boardSize; y++) {
         for (let x = 0; x < boardSize; x++) {
@@ -486,23 +541,28 @@ function computerMove() {
 
             const result = getLegalMoveResult(board, x, y, currentPlayer);
             if (!result.legal) continue;
+            if (result.captured === 0 && territoryMap[y][x] === currentPlayer) continue;
 
             moves.push({
-                x,
-                y,
-                score: evaluateMove(x, y, result)
+                x, y,
+                score: evaluateMove(x, y, result, territoryMap) +
+                    (level === "hard" ? strategicBonus(x, y, result) : 0)
             });
         }
     }
 
     if (!moves.length) {
-        passTurn();
+        passTurn(true);
         return;
     }
 
     moves.sort((a, b) => b.score - a.score);
+    // If all legal moves are strategically poor, the AI may pass instead of filling its own territory.
+    if (level !== "easy" && moves[0].score < (passCount === 1 ? 8 : 4)) {
+        passTurn(true);
+        return;
+    }
 
-    const level = document.getElementById("aiLevel").value;
     let selected;
 
     if (level === "easy") {
@@ -518,10 +578,14 @@ function computerMove() {
     playMove(selected.x, selected.y, true);
 }
 
-function evaluateMove(x, y, result) {
-    let score = Math.random() * 3;
+function evaluateMove(x, y, result, territoryMap) {
+    let score = 0;
 
-    score += result.captured * 50;
+    score += result.captured * 80;
+    if (result.captured === 0 && territoryMap[y][x] === currentPlayer) score -= 45;
+    const ownLiberties = countLiberties(result.board, x, y);
+    if (ownLiberties === 1) score -= 30;
+    else if (ownLiberties === 2) score -= 5;
 
     const centre = (boardSize - 1) / 2;
     const centreDistance = Math.abs(x - centre) + Math.abs(y - centre);
@@ -532,13 +596,33 @@ function evaluateMove(x, y, result) {
 
     const neighboursAround = neighbors(x, y);
     for (const [nx, ny] of neighboursAround) {
-        if (board[ny][nx] === currentPlayer) score += 7;
-        if (board[ny][nx] === opposite(currentPlayer)) score += 3;
+        if (board[ny][nx] === currentPlayer) score += 8;
+        if (board[ny][nx] === opposite(currentPlayer)) score += 1;
+        if (board[ny][nx] === opposite(currentPlayer) && countLiberties(board, nx, ny) <= 2) score += 12;
     }
 
     const stars = getStarPoints(boardSize);
     if (stars.some(([sx, sy]) => sx === x && sy === y)) score += 8;
 
+    // Prefer expanding into open space instead of endlessly filling friendly groups.
+    const emptyAdjacent = neighboursAround.filter(([nx, ny]) => board[ny][nx] === null).length;
+    score += emptyAdjacent * 1.8;
+    return score;
+}
+
+function strategicBonus(x, y, result) {
+    let score = 0;
+    const distanceToEdge = Math.min(x, y, boardSize - 1 - x, boardSize - 1 - y);
+    // Opening moves generally belong on the 3rd/4th line, not in the very centre or on the edge.
+    if (boardSize >= 9) {
+        if (distanceToEdge === 2 || distanceToEdge === 3) score += 5;
+        if (distanceToEdge === 0) score -= 12;
+        if (distanceToEdge === 1) score -= 3;
+    }
+    // Avoid moves that create a cramped group with only one liberty.
+    const libs = countLiberties(result.board, x, y);
+    if (libs <= 1) score -= 45;
+    if (libs >= 4) score += 3;
     return score;
 }
 
@@ -555,11 +639,21 @@ function updateCaptured() {
     document.getElementById("whiteCaptured").textContent = captured.white;
 }
 
+function updateLiveScore() {
+    if (!board.length) return;
+    const score = calculateScore();
+    document.getElementById("liveBlackScore").textContent = score.black.toFixed(1);
+    document.getElementById("liveWhiteScore").textContent = score.white.toFixed(1);
+}
+
 function showResult(title, description, score) {
     document.getElementById("resultTitle").textContent = title;
     document.getElementById("resultDescription").textContent = description;
     document.getElementById("finalBlack").textContent = score.black.toFixed(1);
     document.getElementById("finalWhite").textContent = score.white.toFixed(1);
+    document.getElementById("scoreBreakdown").innerHTML = `<div><strong>Чёрные:</strong> территория ${score.blackTerritory} + захвачено ${score.blackCaptured} = ${score.black.toFixed(1)}</div><div><strong>Белые:</strong> территория ${score.whiteTerritory} + захвачено ${score.whiteCaptured} + коми ${score.komi} = ${score.white.toFixed(1)}</div><small>Крестиками на доске отмечены точки территории, вошедшие в подсчёт.</small>`;
+    finalTerritoryMap = score.territoryMap;
+    renderBoard(finalTerritoryMap);
     document.getElementById("resultModal").classList.remove("hidden");
 }
 

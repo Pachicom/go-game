@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PlayGo — Игра ГО</title>
-    <link rel="stylesheet" href="./style.css?v=6">
+    <link rel="stylesheet" href="./style.css?v=8">
 </head>
 <body>
 
@@ -137,7 +137,7 @@
             <article class="rule-card">
                 <div class="rule-number">04</div>
                 <h2>Захват</h2>
-                <p>Сначала окружите группу, заняв все её дыхания. Когда останется последняя пустая точка внутри, поставьте туда камень: группа без дыханий будет снята с доски. До окружения ход внутрь может быть запрещён как самоубийственный.</p>
+                <p>Сначала окружите группу, заняв все её дыхания. Когда останется последняя пустая точка внутри, поставьте туда камень: группа без дыханий будет снята с доски. Снятые камни становятся пленниками и идут в счёт захватившего игрока. Освободившиеся точки могут войти в его территорию, если пустая область граничит только с его камнями. До окружения ход внутрь может быть запрещён как самоубийственный.</p>
             </article>
             <article class="rule-card">
                 <div class="rule-number">05</div>
@@ -244,12 +244,15 @@
                         <span class="demo-stone demo-black" style="grid-area:1 / 5"></span>
                         <span class="demo-stone demo-black" style="grid-area:2 / 1"></span>
                         <span class="demo-stone demo-black" style="grid-area:2 / 3"></span>
+                        <span class="demo-stone demo-black" style="grid-area:2 / 4"></span>
                         <span class="demo-stone demo-black" style="grid-area:2 / 5"></span>
                         <span class="demo-stone demo-black" style="grid-area:3 / 1"></span>
                         <span class="demo-stone demo-black" style="grid-area:3 / 2"></span>
+                        <span class="demo-stone demo-black" style="grid-area:3 / 3"></span>
                         <span class="demo-stone demo-black" style="grid-area:3 / 4"></span>
                         <span class="demo-stone demo-black" style="grid-area:3 / 5"></span>
                         <span class="demo-stone demo-black" style="grid-area:4 / 1"></span>
+                        <span class="demo-stone demo-black" style="grid-area:4 / 2"></span>
                         <span class="demo-stone demo-black" style="grid-area:4 / 3"></span>
                         <span class="demo-stone demo-black" style="grid-area:4 / 5"></span>
                         <span class="demo-stone demo-black" style="grid-area:5 / 1"></span>
@@ -279,13 +282,13 @@
                 <div class="player-card" id="blackPlayer">
                     <div class="player-stone black-player-stone"></div>
                     <div><strong>Чёрные</strong><span id="blackName">Игрок</span></div>
-                    <div class="captured"><small>Захвачено</small><b id="blackCaptured">0</b></div>
+                    <div class="captured"><small title="Снятые с доски камни соперника">Пленники</small><b id="blackCaptured">0</b></div>
                 </div>
                 <div class="vs">VS</div>
                 <div class="player-card" id="whitePlayer">
                     <div class="player-stone white-player-stone"></div>
                     <div><strong>Белые</strong><span id="whiteName">Игрок</span></div>
-                    <div class="captured"><small>Захвачено</small><b id="whiteCaptured">0</b></div>
+                    <div class="captured"><small title="Снятые с доски камни соперника">Пленники</small><b id="whiteCaptured">0</b></div>
                 </div>
                 <div class="game-info">
                     <div><span>Размер</span><strong id="gameSize">9×9</strong></div>
@@ -350,6 +353,7 @@
     </a>
 </footer>
 
-<script src="./script.js?v=6"></script>
+<script src="./script.js?v=8"></script>
 </body>
 </html>
+

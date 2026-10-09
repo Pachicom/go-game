@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PlayGo — Игра ГО</title>
-    <link rel="stylesheet" href="./style.css?v=2">
+    <link rel="stylesheet" href="./style.css?v=3">
 </head>
 <body>
 
@@ -47,7 +47,7 @@
 
             <div class="setting-group">
                 <h3>Размер доски</h3>
-                <div class="board-size-buttons">
+                <div class="board-size-buttons" id="boardSizeButtons">
                     <button data-size="7">7×7</button>
                     <button class="active" data-size="9">9×9</button>
                     <button data-size="13">13×13</button>
@@ -84,9 +84,15 @@
                     <button data-handicap="3">3</button>
                     <button data-handicap="4">4</button>
                 </div>
-                <div class="komi">Коми <strong>6.5</strong>
-                    <span>компенсация белым за первый ход</span>
+                <div class="komi-setting">
+                    <label for="komiMode">Коми</label>
+                    <select id="komiMode">
+                        <option value="6.5" selected>6.5 очка</option>
+                        <option value="0">Без коми</option>
+                    </select>
+                    <span>Компенсация белым за первый ход</span>
                 </div>
+                <p class="handicap-note" id="handicapNote">Фора автоматически ставится в угловые точки.</p>
             </div>
 
             <button id="startButton" class="start-button">Начать игру <span>→</span></button>
@@ -142,7 +148,7 @@
             <article class="rule-card">
                 <div class="rule-number">08</div>
                 <h2>Коми</h2>
-                <p>Белым начисляется 6.5 очка за то, что чёрные получают право первого хода.</p>
+                <p>В настройках можно оставить стандартные 6.5 очка коми или отключить коми.</p>
             </article>
         </div>
 
@@ -240,7 +246,7 @@
                 </div>
                 <div class="game-info">
                     <div><span>Размер</span><strong id="gameSize">9×9</strong></div>
-                    <div><span>Коми</span><strong>6.5</strong></div>
+                    <div><span>Коми</span><strong id="gameKomi">6.5</strong></div>
                 </div>
             </aside>
 
@@ -255,7 +261,7 @@
                 <div class="live-score" aria-live="polite">
                     <strong>Текущий счёт</strong>
                     <span>Чёрные <b id="liveBlackScore">0</b></span>
-                    <span>Белые <b id="liveWhiteScore">6.5</b> <small>(с коми)</small></span>
+                    <span>Белые <b id="liveWhiteScore">6.5</b> <small id="liveKomiLabel">(с коми)</small></span>
                 </div>
 
                 <div class="game-controls">
@@ -301,7 +307,6 @@
     </a>
 </footer>
 
-<script src="./script.js?v=2"></script>
+<script src="./script.js?v=3"></script>
 </body>
 </html>
-

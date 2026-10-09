@@ -93,6 +93,7 @@
         </div>
 
         <div class="tip"><strong>Совет:</strong> для первой партии попробуйте доску 9×9.</div>
+        <button id="howToPlayButton" class="guide-button" type="button">Как играть? Посмотреть примеры</button>
     </section>
 
     <section id="rulesScreen" class="rules-screen hidden">
@@ -149,6 +150,78 @@
             <strong>Совет новичку</strong>
             <span>Не стремитесь захватить каждый камень. Сначала учитесь строить крепкие группы и окружать большие территории.</span>
         </div>
+
+        <section class="examples-section" aria-labelledby="examplesTitle">
+            <div class="examples-heading">
+                <div class="eyebrow">ПРИМЕРЫ НА ДОСКЕ</div>
+                <h2 id="examplesTitle">Три важных момента</h2>
+                <p>Камни ставятся на пересечения линий. Вот как работают дыхания, захват и территория.</p>
+            </div>
+            <div class="examples-grid">
+                <article class="example-card">
+                    <div class="example-board" role="img" aria-label="Белый камень с двумя отмеченными свободными дыханиями">
+                        <span class="demo-stone demo-white" style="grid-area:3 / 3"></span>
+                        <span class="demo-stone demo-black" style="grid-area:2 / 3"></span>
+                        <span class="demo-liberty" style="grid-area:3 / 2"></span>
+                        <span class="demo-liberty" style="grid-area:3 / 4"></span>
+                    </div>
+                    <div>
+                        <h3>Дыхания</h3>
+                        <p>Свободные соседние пересечения — это дыхания камня. На схеме точки дыхания отмечены кружками.</p>
+                    </div>
+                </article>
+                <article class="example-card">
+                    <div class="example-board" role="img" aria-label="Чёрные камни окружили белый, который был снят с доски">
+                        <span class="demo-stone demo-black" style="grid-area:2 / 3"></span>
+                        <span class="demo-stone demo-black" style="grid-area:3 / 2"></span>
+                        <span class="demo-stone demo-black" style="grid-area:3 / 4"></span>
+                        <span class="demo-stone demo-black" style="grid-area:4 / 3"></span>
+                        <span class="demo-captured" style="grid-area:3 / 3">×</span>
+                    </div>
+                    <div>
+                        <h3>Захват</h3>
+                        <p>Чёрные заняли последнее дыхание белого камня. Белый камень снят с доски, а пересечение отмечено крестиком.</p>
+                    </div>
+                </article>
+                <article class="example-card">
+                    <div class="example-board" role="img" aria-label="Внутри чёрного кольца крестиками отмечена территория">
+                        <span class="demo-stone demo-black" style="grid-area:1 / 1"></span>
+                        <span class="demo-stone demo-black" style="grid-area:1 / 2"></span>
+                        <span class="demo-stone demo-black" style="grid-area:1 / 3"></span>
+                        <span class="demo-stone demo-black" style="grid-area:1 / 4"></span>
+                        <span class="demo-stone demo-black" style="grid-area:1 / 5"></span>
+                        <span class="demo-stone demo-black" style="grid-area:2 / 1"></span>
+                        <span class="demo-stone demo-black" style="grid-area:3 / 1"></span>
+                        <span class="demo-stone demo-black" style="grid-area:4 / 1"></span>
+                        <span class="demo-stone demo-black" style="grid-area:5 / 1"></span>
+                        <span class="demo-stone demo-black" style="grid-area:2 / 5"></span>
+                        <span class="demo-stone demo-black" style="grid-area:3 / 5"></span>
+                        <span class="demo-stone demo-black" style="grid-area:4 / 5"></span>
+                        <span class="demo-stone demo-black" style="grid-area:5 / 5"></span>
+                        <span class="demo-stone demo-black" style="grid-area:5 / 2"></span>
+                        <span class="demo-stone demo-black" style="grid-area:5 / 3"></span>
+                        <span class="demo-stone demo-black" style="grid-area:5 / 4"></span>
+                        <span class="demo-territory" style="grid-area:2 / 2">×</span>
+                        <span class="demo-territory" style="grid-area:2 / 3">×</span>
+                        <span class="demo-territory" style="grid-area:2 / 4">×</span>
+                        <span class="demo-territory" style="grid-area:3 / 2">×</span>
+                        <span class="demo-territory" style="grid-area:3 / 3">×</span>
+                        <span class="demo-territory" style="grid-area:3 / 4">×</span>
+                        <span class="demo-territory" style="grid-area:4 / 2">×</span>
+                        <span class="demo-territory" style="grid-area:4 / 3">×</span>
+                        <span class="demo-territory" style="grid-area:4 / 4">×</span>
+                    </div>
+                    <div>
+                        <h3>Территория</h3>
+                        <p>Пустые точки, окружённые камнями только одного цвета, считаются территорией этого игрока.</p>
+                    </div>
+                </article>
+            </div>
+            <div class="guide-actions">
+                <p>Игра заканчивается после двух пасов подряд или кнопкой «Завершить партию». Побеждает тот, у кого больше очков.</p>
+                <button id="guideStartButton" class="start-button" type="button">Перейти к настройкам игры <span>→</span></button>
+            </div>
+        </section>
     </section>
 
     <section id="gameScreen" class="game-screen hidden">
@@ -179,34 +252,42 @@
 
                 <div id="board-wrapper"><div id="board"></div></div>
 
+                <div class="live-score" aria-live="polite">
+                    <strong>Текущий счёт</strong>
+                    <span>Чёрные <b id="liveBlackScore">0</b></span>
+                    <span>Белые <b id="liveWhiteScore">6.5</b> <small>(с коми)</small></span>
+                </div>
+
                 <div class="game-controls">
                     <button id="passButton">Пас</button>
                     <button id="undoButton">Отмена</button>
+                    <button id="finishButton" class="primary">Завершить партию</button>
                     <button id="resignButton" class="danger">Сдаться</button>
                     <button id="newGameButton" class="primary">Новая партия</button>
                 </div>
                 <div id="statusMessage" class="status-message"></div>
             </div>
         </div>
-    </section>
 
-    <div id="resultModal" class="modal hidden">
-        <div class="modal-card">
-            <div class="result-icon">◉</div>
-            <div class="eyebrow">ПАРТИЯ ОКОНЧЕНА</div>
-            <h2 id="resultTitle">Чёрные победили</h2>
-            <div class="final-score">
-                <div><span>Чёрные</span><strong id="finalBlack">0</strong></div>
-                <div class="score-divider">:</div>
-                <div><span>Белые</span><strong id="finalWhite">0</strong></div>
-            </div>
-            <p id="resultDescription"></p>
-            <div class="modal-buttons">
-                <button id="playAgainButton" class="primary">Сыграть ещё</button>
-                <button id="backButton">В меню</button>
+        <div id="resultModal" class="modal hidden">
+            <div class="modal-card">
+                <div class="result-icon">◉</div>
+                <div class="eyebrow">ПАРТИЯ ОКОНЧЕНА</div>
+                <h2 id="resultTitle">Чёрные победили</h2>
+                <div class="final-score">
+                    <div><span>Чёрные</span><strong id="finalBlack">0</strong></div>
+                    <div class="score-divider">:</div>
+                    <div><span>Белые</span><strong id="finalWhite">0</strong></div>
+                </div>
+                <div class="score-breakdown" id="scoreBreakdown"></div>
+                <p id="resultDescription"></p>
+                <div class="modal-buttons">
+                    <button id="playAgainButton" class="primary">Сыграть ещё</button>
+                    <button id="backButton">В меню</button>
+                </div>
             </div>
         </div>
-    </div>
+    </section>
 </main>
 
 <footer>
@@ -223,3 +304,4 @@
 <script src="script.js"></script>
 </body>
 </html>
+
